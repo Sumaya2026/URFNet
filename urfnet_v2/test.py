@@ -12,7 +12,7 @@ import os
 import argparse
 import json
 from dataset import Clsdata
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score,roc_auc_score, auc, roc_curve
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, auc, roc_curve, classification_report, confusion_matrix
 from sklearn.preprocessing import label_binarize
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from matplotlib.patches import ConnectionPatch
@@ -54,12 +54,17 @@ def test(model, test_root,  batch_size):
         # Compute total accuracy in the whole batch and add to valid_acc
         test_acc_cls += acc_cls.item() * img1.size(0)
 
-    Acc = test_acc_cls / test_length
-    #accuracy = accuracy_score(y_true, y_pred)
-    Pre = precision_score(y_true, y_pred, average='macro')
-    Rec = recall_score(y_true, y_pred, average='macro')
-    #F1 = f1_score(y_true, y_pred, average='macro')
-    F1 = (2*Pre*Rec)/(Pre+Rec)
+    labels = [0, 1, 2]
+    names = ["Proximal", "Midshaft", "Distal"]
+    Pre = precision_score(y_true, y_pred, average='macro', labels=labels, zero_division=0)
+    Rec = recall_score(y_true, y_pred, average='macro', labels=labels, zero_division=0)
+    F1  = f1_score(y_true, y_pred, average='macro', labels=labels, zero_division=0)   # true macro-F1
+
+    print(classification_report(y_true, y_pred, labels=labels, target_names=names,
+                                digits=4, zero_division=0))
+    cm = confusion_matrix(y_true, y_pred, labels=labels)
+    print("Confusion matrix (rows = true, columns = predicted):")
+    print(pd.DataFrame(cm, index=names, columns=names))
 
 
 
